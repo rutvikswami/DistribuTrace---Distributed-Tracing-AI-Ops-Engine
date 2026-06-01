@@ -1,0 +1,84 @@
+services:
+
+  postgres:
+    image: postgres:17
+
+    container_name: distributrace-postgres
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+  collector:
+    build:
+      context: ./collector
+
+    container_name: distributrace-collector
+
+    ports:
+      - "${COLLECTOR_PORT}:8080"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+
+    container_name: distributrace-api
+
+    ports:
+      - "${API_PORT}:8000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+    restart: unless-stopped
+
+  anomaly:
+    build:
+      context: ./anomaly
+
+    container_name: distributrace-anomaly
+
+    ports:
+      - "${ANOMALY_PORT}:8001"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: distributrace-frontend
+
+    ports:
+      - "${FRONTEND_PORT}:5173"
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
